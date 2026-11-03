@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080d1b">
+  <meta name="description" content="Учебный симулятор перелётов Хомана и биоэллиптического перехода.">
+  <title>Космический перелёт: Хоман vs Биоэллиптика</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand-icon" aria-hidden="true">✦</div>
+      <div>
+        <p class="eyebrow">ОРБИТАЛЬНАЯ МЕХАНИКА</p>
+        <h1>Космический перелёт</h1>
+        <p class="subtitle">Хоман <span class="versus">VS</span> Биоэллиптика</p>
+      </div>
+    </header>
+
+    <section class="intro">
+      <p>
+        Сравни два способа перемещения между круговыми орбитами.
+        Измени радиусы, запусти аппараты и узнай, какая стратегия
+        требует меньшего изменения скорости.
+      </p>
+    </section>
+
+    <div class="workspace">
+      <section class="panel controls-panel" aria-labelledby="controls-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ШАГ 01</p>
+            <h2 id="controls-title">Параметры орбит</h2>
+          </div>
+          <span class="status-dot" aria-hidden="true"></span>
+        </div>
+
+        <div class="parameter">
+          <div class="parameter-heading">
+            <label for="r1-range">Начальная орбита <span>r₁</span></label>
+            <span class="unit">км</span>
+          </div>
+          <div class="parameter-inputs">
+            <input id="r1-range" type="range"
+                   min="5000" max="25000" step="500" value="7000">
+            <input id="r1-number" type="number"
+                   min="5000" max="25000" step="500" value="7000"
+                   aria-label="Начальная орбита в километрах">
+          </div>
+          <div class="range-labels"><span>5 000 км</span><span>25 000 км</span></div>
+        </div>
+
+        <div class="parameter">
+          <div class="parameter-heading">
+            <label for="r2-range">Целевая орбита <span>r₂</span></label>
+            <span class="unit">км</span>
+          </div>
+          <div class="parameter-inputs">
+            <input id="r2-range" type="range"
+                   min="5000" max="50000" step="500" value="30000">
+            <input id="r2-number" type="number"
+                   min="5000" max="50000" step="500" value="30000"
+                   aria-label="Целевая орбита в километрах">
+          </div>
+          <div class="range-labels"><span>5 000 км</span><span>50 000 км</span></div>
+        </div>
+
+        <div class="parameter">
+          <div class="parameter-heading">
+            <label for="rb-range">Промежуточная орбита <span>rᵦ</span></label>
+            <span class="unit">км</span>
+          </div>
+          <div class="parameter-inputs">
+            <input id="rb-range" type="range"
+                   min="31500" max="200000" step="1000" value="80000">
+            <input id="rb-number" type="number"
+                   min="31500" max="200000" step="1000" value="80000"
+                   aria-label="Промежуточная орбита в километрах">
+          </div>
+          <div class="range-labels">
+            <span id="rb-min-label">31 500 км</span><span>200 000 км</span>
+          </div>
+          <p class="field-hint">Для биоэллиптики rᵦ должна быть больше обоих радиусов.</p>
+        </div>
+
+        <div class="physics-note">
+          <span class="note-icon" aria-hidden="true">ⓘ</span>
+          <p>
+            <strong>Модель Земли.</strong> Используется гравитационный
+            параметр μ = 398 600,4418 км³/с². Радиусы задаются от центра
+            Земли. Импульсы считаются мгновенными, сопротивление атмосферы
+            и наклонение орбит не учитываются.
+          </p>
+        </div>
+
+        <div class="actions">
+          <button id="start-btn" class="button button-primary" type="button">
+            <span aria-hidden="true">▶</span> Запустить симуляцию
+          </button>
+          <button id="reset-btn" class="button button-secondary" type="button">
+            ↺ Сброс
+          </button>
+        </div>
+        <p id="control-message" class="control-message" role="status" aria-live="polite">
+          Измени параметры и запусти перелёт.
+        </p>
+      </section>
+
+      <section class="panel visualization-panel" aria-labelledby="visual-title">
+        <div class="section-heading visual-heading">
+          <div>
+            <p class="eyebrow">ШАГ 02</p>
+            <h2 id="visual-title">Карта перелётов</h2>
+          </div>
+          <span id="simulation-status" class="status-badge">ОЖИДАНИЕ</span>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="orbit-canvas"
+                  role="img"
+                  aria-label="Схема орбит и анимированные траектории двух космических аппаратов">
+            Ваш браузер не поддерживает Canvas.
+          </canvas>
+          <div class="canvas-overlay">
+            <span class="live-indicator"></span>
+            <span id="canvas-caption">СХЕМА ОРБИТ</span>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-line orbit-line"></span>
+            <span>Круговые орбиты</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-line hohmann-line"></span>
+            <span>Хоман</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-line bielliptic-line"></span>
+            <span>Биоэллиптика</span>
+          </div>
+        </div>
+
+        <div class="live-stats">
+          <div class="live-stat">
+            <span>Прогресс</span>
+            <strong id="progress-value">0%</strong>
+          </div>
+          <div class="progress-track">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+          <div class="live-stat">
+            <span>Время анимации</span>
+            <strong id="animation-time">0,0 с</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section id="results-panel" class="panel results-panel" hidden
+             aria-labelledby="results-title" aria-live="polite">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ШАГ 03</p>
+          <h2 id="results-title">Результаты сравнения</h2>
+        </div>
+        <span class="result-icon" aria-hidden="true">✓</span>
+      </div>
+
+      <div class="results-grid">
+        <article class="result-card">
+          <div class="result-card-heading">
+            <span class="strategy-dot dot-hohmann"></span>
+            <h3>Переход Хомана</h3>
+          </div>
+          <p class="result-description">Один эллиптический участок</p>
+          <div class="metric">
+            <span>Суммарное ΔV</span>
+            <strong id="h-dv">—</strong>
+            <small id="h-dv-ms">—</small>
+          </div>
+          <div class="metric">
+            <span>Время перелёта</span>
+            <strong id="h-time">—</strong>
+            <small id="h-time-hours">—</small>
+          </div>
+          <div class="metric">
+            <span>Макс. удаление</span>
+            <strong id="h-max">—</strong>
+            <small>от центра Земли</small>
+          </div>
+          <div class="result-footer" id="h-success">Ожидание запуска</div>
+        </article>
+
+        <article class="result-card">
+          <div class="result-card-heading">
+            <span class="strategy-dot dot-bielliptic"></span>
+            <h3>Биоэллиптика</h3>
+          </div>
+          <p class="result-description">Два эллиптических участка</p>
+          <div class="metric">
+            <span>Суммарное ΔV</span>
+            <strong id="b-dv">—</strong>
+            <small id="b-dv-ms">—</small>
+          </div>
+          <div class="metric">
+            <span>Время перелёта</span>
+            <strong id="b-time">—</strong>
+            <small id="b-time-hours">—</small>
+          </div>
+          <div class="metric">
+            <span>Макс. удаление</span>
+            <strong id="b-max">—</strong>
+            <small>от центра Земли</small>
+          </div>
+          <div class="result-footer" id="b-success">Ожидание запуска</div>
+        </article>
+      </div>
+
+      <div class="comparison">
+        <h3>Что выгоднее?</h3>
+        <p id="dv-verdict">—</p>
+        <p id="time-verdict">—</p>
+        <p id="overall-verdict" class="overall-verdict">—</p>
+      </div>
+
+      <details class="formula-details">
+        <summary>Как выполняются расчёты?</summary>
+        <div class="formula-content">
+          <p><strong>Круговая орбита:</strong> v = √(μ/r).</p>
+          <p><strong>Эллиптическая орбита:</strong> v = √(μ(2/r − 1/a)), где a — большая полуось.</p>
+          <p><strong>Переход Хомана:</strong> сумма модулей двух импульсов между круговыми орбитами.</p>
+          <p><strong>Биоэллиптика:</strong> сумма трёх импульсов на эллипсах с большими полуосями (r₁+rᵦ)/2 и (r₂+rᵦ)/2.</p>
+          <p><strong>Время:</strong> половина периода каждого переходного эллипса, T/2 = π√(a³/μ).</p>
+          <p>Расход топлива напрямую не моделируется: меньшее ΔV означает меньшую требуемую суммарную характеристическую скорость при идеальных импульсах.</p>
+        </div>
+      </details>
+    </section>
+
+    <footer class="footer">
+      <p>Учебный симулятор · Ньютоновская двухтельная модель · Все расстояния — от центра Земли</p>
+    </footer>
+  </main>
+</body>
+</html>
